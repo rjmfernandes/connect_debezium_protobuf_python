@@ -1,0 +1,11 @@
+syntax = "proto3";
+package pg.public.customers;
+
+import "google/protobuf/timestamp.proto";
+
+message Value {
+  int32 customer_id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  google.protobuf.Timestamp creation_date = 4;
+}
