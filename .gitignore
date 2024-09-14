@@ -1,5 +1,5 @@
 .DS_Store
 .vscode
 plugins
-consumer_pb2.py
+customer_pb2.py
 __pycache__
