@@ -1,8 +1,8 @@
-# Connect + Debezium CDC + Protobuf + Pyhton
+# Connect + Debezium + Protobuf + Python
 
-- [Connect + Debezium CDC + Protobuf + Pyhton](#connect--debezium-cdc--protobuf--pyhton)
+- [Connect + Debezium + Protobuf + Python](#connect--debezium--protobuf--python)
   - [Start Services](#start-services)
-    - [Install Debezium Postgres CDC plugin](#install-debezium-postgres-cdc-plugin)
+  - [Install Debezium Postgres CDC plugin](#install-debezium-postgres-cdc-plugin)
   - [Populate the database](#populate-the-database)
   - [Create the topic and schema](#create-the-topic-and-schema)
   - [Initial Load](#initial-load)
@@ -24,7 +24,7 @@ docker compose logs -f
 
 Open Control Center: http://localhost:9021/clusters
 
-### Install Debezium Postgres CDC plugin
+## Install Debezium Postgres CDC plugin
 
 ```bash
 docker compose exec -it connect bash
