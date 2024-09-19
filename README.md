@@ -98,7 +98,7 @@ cat ./customer.proto | jq -Rs '{"schemaType": "PROTOBUF", schema: .}' | curl -X 
 
 ## Initial Load
 
-Now let's create our sink connector:
+Now let's create our source connector:
 
 ```bash
 curl -i -X PUT -H "Accept:application/json" \
