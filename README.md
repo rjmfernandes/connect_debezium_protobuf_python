@@ -8,6 +8,7 @@
   - [Initial Load](#initial-load)
   - [Python Protobuf Consumer](#python-protobuf-consumer)
   - [Test CDC](#test-cdc)
+  - [Dynamic Protobuf Deserialization](#dynamic-protobuf-deserialization)
   - [Cleanup](#cleanup)
 
 ## Start Services
@@ -152,8 +153,10 @@ docker compose logs -f connect
 Prepare your environment:
 
 ```shell
-pip install confluent_kafka
-pip install protobuf
+python -m venv my-venv
+my-venv/bin/pip install confluent-kafka 
+my-venv/bin/pip install protobuf
+my-venv/bin/pip install requests
 ```
 
 Generate the class based on the protobuf schema:
@@ -165,7 +168,7 @@ protoc --python_out=. customer.proto
 Run the consumer:
 
 ```shell
-python consumer.py -b localhost:9092 -s http://localhost:8081 -t customers -g test1
+my-venv/bin/python consumer.py -b localhost:9092 -s http://localhost:8081 -t customers -g test1
 ```
 
 ## Test CDC
@@ -185,6 +188,19 @@ INSERT INTO public.customers (first_name, last_name, creation_date) VALUES
 ```
 
 Check the new entries are consumed by our python consumer.
+
+## Dynamic Protobuf Deserialization
+
+For an example of a dynamic protobuf deserialization without leveraging a local proto schema you can use `consumerDynamic.py`
+
+```shell
+my-venv/bin/python consumerDynamic.py -b localhost:9092 -s http://localhost:8081 -t customers -g test1
+```
+
+Confirm nowhere in `consumerDynamic.py` we are leveraging `customer_pb2` built from the schema before. So the deserialization happens dynamically from the schema in SchemaRegistry much the same way as with Avro (https://github.com/rjmfernandes/connect_debezium_avro_python).
+
+
+
 
 ## Cleanup
 
