@@ -10,6 +10,23 @@ from confluent_kafka.schema_registry.protobuf import ProtobufDeserializer
 from confluent_kafka.serialization import SerializationContext, MessageField
 
 
+schemaMap = {}
+
+def getSchema(schema_registry_url, schemaId):
+    if schemaId in schemaMap:
+        return schemaMap[schemaId]
+    else:
+        schema = fetch_protobuf_schema_id(schema_registry_url,schemaId)
+        schemaMap[schemaId] = create_protobuf_message_type(schema)
+        return schemaMap[schemaId]
+
+def fetch_protobuf_schema_id(schema_registry_url,schemaId):
+    url = f"{schema_registry_url}/schemas/ids/{schemaId}"
+    print(url)
+    response = requests.get(url)
+    response.raise_for_status()
+    return response.json()['schema']
+
 def fetch_protobuf_schema(schema_registry_url,topic_name):
     url = f"{schema_registry_url}/subjects/{topic_name}-value/versions/latest"
     response = requests.get(url)
@@ -115,7 +132,11 @@ def create_protobuf_message_type(schema_text):
     # Ensure we return the message class itself
     return message_factory.GetMessageClass(message_class)
 
+
+
+
 def main(args):
+
 
     kafka_consumer_conf = {
         'bootstrap.servers': args.bootstrap_servers,
@@ -129,9 +150,6 @@ def main(args):
     }
     consumer = Consumer(kafka_consumer_conf)
     consumer.subscribe([args.topic])
-    schema_text = fetch_protobuf_schema(args.schema_registry, args.topic)
-    message_class = create_protobuf_message_type(schema_text)
-    protobuf_deserializer = ProtobufDeserializer(message_class, schema_registry_conf)
 
     try:
         while True:
@@ -142,7 +160,10 @@ def main(args):
             if msg.error():
                 print(f"Error: {msg.error()}")
                 continue
-            
+            schemaId = int.from_bytes(msg.value()[0:5])
+            message_class = getSchema(args.schema_registry,schemaId)
+            protobuf_deserializer = ProtobufDeserializer(message_class, schema_registry_conf)
+
             customer = protobuf_deserializer(
                 msg.value(), SerializationContext(msg.topic(), MessageField.VALUE)
             )
