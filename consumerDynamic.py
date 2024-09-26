@@ -34,12 +34,6 @@ def fetch_protobuf_schema_id(schema_registry_url,schemaId):
     response.raise_for_status()
     return response.json()['schema']
 
-def fetch_protobuf_schema(schema_registry_url,topic_name):
-    url = f"{schema_registry_url}/subjects/{topic_name}-value/versions/latest"
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.json()['schema']
-
 def create_protobuf_message_type(schema_text):
     # Create a new FileDescriptorProto
     file_descriptor = descriptor_pb2.FileDescriptorProto()
