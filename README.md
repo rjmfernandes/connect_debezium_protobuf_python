@@ -9,6 +9,7 @@
   - [Python Protobuf Consumer](#python-protobuf-consumer)
   - [Test CDC](#test-cdc)
   - [Dynamic Protobuf Deserialization](#dynamic-protobuf-deserialization)
+    - [Schema changes](#schema-changes)
   - [Cleanup](#cleanup)
 
 ## Start Services
@@ -198,6 +199,39 @@ my-venv/bin/python consumerDynamic.py -b localhost:9092 -s http://localhost:8081
 ```
 
 Confirm nowhere in `consumerDynamic.py` we are leveraging `customer_pb2` built from the schema before. So the deserialization happens dynamically from the schema in SchemaRegistry much the same way as with Avro (https://github.com/rjmfernandes/connect_debezium_avro_python).
+
+### Schema changes
+
+Let's change our table:
+
+```sql
+ALTER TABLE public.customers
+ADD new_column VARCHAR(50);
+INSERT INTO public.customers (first_name, last_name, creation_date) VALUES
+('Rodrigo', 'Jorge', '2024-09-26 16:00:00');
+INSERT INTO public.customers (first_name, last_name, creation_date,new_column) VALUES
+('Jorge', 'Rodrigo', '2024-09-26 16:00:00','new_value');
+```
+
+Check the schema was updated and the messages were consumed by our dynamic consumer before leveraging the new schema:
+
+```
+Creating deserializer for schema 2
+http://localhost:8081/schemas/ids/2
+Customer record b'13':
+	customer_id: 13
+	first_name: Rodrigo
+	last_name: Jorge
+	creation_date: 2024-09-26T16:00:00Z
+
+
+Deserializer for schema 2 already exists
+Customer record b'14':
+	customer_id: 14
+	first_name: Jorge
+	last_name: Rodrigo
+	creation_date: 2024-09-26T16:00:00Z
+  ```
 
 ## Cleanup
 

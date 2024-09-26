@@ -12,13 +12,20 @@ from confluent_kafka.serialization import SerializationContext, MessageField
 
 schemaMap = {}
 
-def getSchema(schema_registry_url, schemaId):
+def getDeserializer(schema_registry_url, schemaId):
     if schemaId in schemaMap:
+        print('Deserializer for schema {} already exists'.format(schemaId))
         return schemaMap[schemaId]
     else:
+        print('Creating deserializer for schema {}'.format(schemaId))
         schema = fetch_protobuf_schema_id(schema_registry_url,schemaId)
-        schemaMap[schemaId] = create_protobuf_message_type(schema)
-        return schemaMap[schemaId]
+        schema_registry_conf = {
+            'use.deprecated.format': False
+        }
+        message_class = create_protobuf_message_type(schema)
+        protobuf_deserializer = ProtobufDeserializer(message_class, schema_registry_conf)
+        schemaMap[schemaId] = protobuf_deserializer
+        return protobuf_deserializer
 
 def fetch_protobuf_schema_id(schema_registry_url,schemaId):
     url = f"{schema_registry_url}/schemas/ids/{schemaId}"
@@ -143,11 +150,6 @@ def main(args):
         'group.id': args.group,
         'auto.offset.reset': 'earliest',
     }
-
-    schema_registry_conf = {
-        'schema.registry.url': args.schema_registry,
-        'use.deprecated.format': False
-    }
     consumer = Consumer(kafka_consumer_conf)
     consumer.subscribe([args.topic])
 
@@ -161,8 +163,7 @@ def main(args):
                 print(f"Error: {msg.error()}")
                 continue
             schemaId = int.from_bytes(msg.value()[0:5])
-            message_class = getSchema(args.schema_registry,schemaId)
-            protobuf_deserializer = ProtobufDeserializer(message_class, schema_registry_conf)
+            protobuf_deserializer = getDeserializer(args.schema_registry,schemaId)
 
             customer = protobuf_deserializer(
                 msg.value(), SerializationContext(msg.topic(), MessageField.VALUE)
