@@ -213,7 +213,7 @@ INSERT INTO public.customers (first_name, last_name, creation_date,new_column) V
 ('Jorge', 'Rodrigo', '2024-09-26 16:00:00','new_value');
 ```
 
-Check the schema was updated and the messages were consumed by our dynamic consumer before leveraging the new schema:
+Check the schema was updated and the new messages were consumed by our dynamic consumer leveraging the new schema:
 
 ```
 Creating deserializer for schema 2
